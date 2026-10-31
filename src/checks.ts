@@ -184,7 +184,7 @@ export function runChecks(ctx: CheckContext): Finding[] {
     const page = rec.page;
     if (!page) continue;
     const title = page.title?.trim() ?? "";
-    if (title === "") add("title-missing", rec.url, page.titleCount === 0 ? "no <title> element" : "empty <title>");
+    if (title === "") add("title-missing", rec.url, page.titleCount === 0 ? "no title element" : "the title is empty");
     else if (title.length > th.titleMax) add("title-too-long", rec.url, `${title.length} characters: "${title}"`);
     else if (title.length < th.titleMin) add("title-too-short", rec.url, `${title.length} characters: "${title}"`);
 
@@ -338,7 +338,7 @@ export function runChecks(ctx: CheckContext): Finding[] {
       const after = renderedWords !== undefined ? ` After JavaScript: ${renderedWords} words.` : "";
       const bits = [`${page.wordCount} words in the raw HTML`];
       if (s.emptyAppRoot) bits.push("empty app container (#root/#app)");
-      if (s.noscriptNeedsJs) bits.push("<noscript> asks for JavaScript");
+      if (s.noscriptNeedsJs) bits.push("a noscript block asks for JavaScript");
       if (s.scriptCount > 0) bits.push(`${s.scriptCount} script tag(s)`);
       if (s.emptyAppRoot || s.noscriptNeedsJs) {
         add("client-rendered-body", rec.url, bits.join("; ") + "." + after);

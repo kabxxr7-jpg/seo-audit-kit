@@ -3,6 +3,11 @@ import { SEVERITY_ORDER, type Severity } from "./catalog.js";
 
 const EXAMPLES_SHOWN = 5;
 
+/** Keeps text from page content (titles, snippets) from being read as markdown HTML. */
+function safe(s: string): string {
+  return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function cell(s: string): string {
   return s.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
@@ -32,7 +37,7 @@ export function renderMarkdown(r: AuditResult): string {
   // Summary
   L.push("## Summary");
   L.push("");
-  L.push(`- Pages fetched: **${r.crawl.pagesFetched}** (limit ${r.settings.maxPages}${r.crawl.capReached ? ", **limit reached, the audit is partial**" : ""}), ${r.crawl.requests} HTTP requests, at least ${r.settings.delayMs} ms between requests.`);
+  L.push(`- Pages fetched: **${r.crawl.pagesFetched}** (limit ${r.settings.maxPages}${r.crawl.capReached ? ", **limit reached, the audit is partial**" : ""}), ${r.crawl.requests} HTTP requests, ${r.settings.delayMs > 0 ? `at least ${r.settings.delayMs} ms between requests` : "no pause between requests (--delay-ms 0)"}.`);
   L.push(`- Issues found: **${r.counts.high} high**, **${r.counts.medium} medium**, **${r.counts.low} low** (${r.counts.issueTypes} kinds, ${r.counts.occurrences} occurrences).`);
   L.push("");
   if (r.issues.length > 0) {
@@ -87,7 +92,7 @@ export function renderMarkdown(r: AuditResult): string {
       L.push("");
       L.push("Examples:");
       const shown = i.examples.slice(0, EXAMPLES_SHOWN);
-      for (const e of shown) L.push(`- ${e.url}${e.detail ? ` - ${e.detail}` : ""}`);
+      for (const e of shown) L.push(`- ${e.url}${e.detail ? ` - ${safe(e.detail)}` : ""}`);
       const rest = i.examples.length - shown.length;
       if (rest > 0 || i.count > i.examples.length) L.push(`- ... and ${Math.max(rest, 0)} more occurrence(s) listed in the JSON report`);
       L.push("");

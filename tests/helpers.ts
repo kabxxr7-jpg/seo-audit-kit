@@ -42,6 +42,9 @@ export interface FakePage {
   html: string;
   status?: number;
   redirectTo?: string;
+  /** Statuses of the redirect hops, in order (default one 301). */
+  hopStatuses?: number[];
+  outcome?: PageRecord["outcome"];
   xRobotsTag?: string;
   timeMs?: number;
 }
@@ -63,8 +66,10 @@ export function fakeCrawl(origin: string, pages: Record<string, FakePage | strin
       status,
       finalUrl: redirect ? origin + (p.redirectTo as string) : url,
       finalStatus: redirect ? 200 : status,
-      redirectChain: redirect ? [{ url, status: 301, location: origin + (p.redirectTo as string) }] : [],
-      outcome: "ok",
+      redirectChain: redirect
+        ? (p.hopStatuses ?? [301]).map((st, i, all) => ({ url: i === 0 ? url : `${url}~hop${i}`, status: st, location: i === all.length - 1 ? origin + (p.redirectTo as string) : `${url}~hop${i + 1}` }))
+        : [],
+      outcome: p.outcome ?? "ok",
       timeMs: p.timeMs ?? 10,
       contentType: "text/html; charset=utf-8",
       isHtml: !redirect && status < 300,

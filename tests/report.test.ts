@@ -68,7 +68,7 @@ describe("markdown report for the broken fixture", () => {
     expect(md).toContain("#### Pages without a title (`title-missing`): 1 URL");
     expect(md).toContain("**How to fix:** " + CATALOG["title-missing"].fix);
     expect(md).toContain("**Why it matters:** " + CATALOG["title-missing"].why);
-    expect(md).toContain(`- ${r.target.replace(/\/$/, "")}/contact - no <title> element`);
+    expect(md).toContain(`- ${r.target.replace(/\/$/, "")}/contact - no title element`);
     expect(md).toContain(`**${r.counts.high} high**, **${r.counts.medium} medium**, **${r.counts.low} low**`);
   });
 
@@ -128,6 +128,22 @@ describe("markdown report for the broken fixture", () => {
     expect(line).toBeDefined();
     expect(line).toContain("/a\\|b");
     expect(line?.replace(/\\\|/g, "").split("|").length).toBe(r.bots.rows.length + 3);
+  });
+});
+
+describe("markdown safety and wording", () => {
+  it("escapes angle brackets that came from page content", async () => {
+    const r = await auditSite(brokenSite);
+    const issue = r.issues.find((i) => i.id === "title-missing");
+    if (issue?.examples[0]) issue.examples[0].detail = 'title was "<script>alert(1)</script>"';
+    const md = renderMarkdown(r);
+    expect(md).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(md).not.toContain("<script>alert(1)");
+  });
+  it("describes a zero delay plainly instead of 'at least 0 ms'", async () => {
+    const md = renderMarkdown(await auditSite(goodSite));
+    expect(md).toContain("no pause between requests (--delay-ms 0)");
+    expect(md).not.toContain("at least 0 ms");
   });
 });
 

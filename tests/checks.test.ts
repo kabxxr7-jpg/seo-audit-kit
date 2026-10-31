@@ -363,9 +363,56 @@ describe("https and mixed content", () => {
 });
 
 describe("redirects and slow pages", () => {
+  const withRedirect = (spec: { hopStatuses?: number[]; outcome?: "ok" | "redirect-loop" | "too-many-redirects" | "bad-redirect" }) =>
+    checkFake(fakeCrawl(O, { "/": good(), "/old": { html: "", redirectTo: "/", ...spec } }));
+
+  it("temporary redirects (302 and 307) are reported, permanent ones (301, 308) are not", () => {
+    expect(furls(withRedirect({ hopStatuses: [302] }), "redirect-temporary")).toEqual([`${O}/old`]);
+    expect(furls(withRedirect({ hopStatuses: [307] }), "redirect-temporary")).toEqual([`${O}/old`]);
+    expect(furls(withRedirect({ hopStatuses: [301, 307] }), "redirect-temporary")).toEqual([`${O}/old`]);
+    expect(fids(withRedirect({ hopStatuses: [301] }))).not.toContain("redirect-temporary");
+    expect(fids(withRedirect({ hopStatuses: [308] }))).not.toContain("redirect-temporary");
+  });
+  it("a chain of two or more hops is reported; one hop is not", () => {
+    expect(furls(withRedirect({ hopStatuses: [301, 301] }), "redirect-chain")).toEqual([`${O}/old`]);
+    expect(fids(withRedirect({ hopStatuses: [301] }))).not.toContain("redirect-chain");
+  });
+  it("loops, chains that are too long and redirects without a Location are separate findings", () => {
+    expect(furls(withRedirect({ hopStatuses: [302, 302], outcome: "redirect-loop" }), "redirect-loop")).toEqual([`${O}/old`]);
+    expect(furls(withRedirect({ hopStatuses: [301, 301, 301], outcome: "too-many-redirects" }), "redirect-chain-too-long")).toEqual([`${O}/old`]);
+    expect(furls(withRedirect({ outcome: "bad-redirect" }), "redirect-broken")).toEqual([`${O}/old`]);
+    expect(fids(withRedirect({ hopStatuses: [302, 302], outcome: "redirect-loop" }))).not.toContain("redirect-chain");
+  });
   it("slow responses", () => {
     const f = checkFake(fakeCrawl(O, { "/": { html: good(), timeMs: 2001 }, "/ok": { html: good({ path: "/ok", title: "Quick page here" }), timeMs: 2000 } }));
     expect(furls(f, "slow-response")).toEqual([`${O}/`]);
+  });
+});
+
+describe("structured data across pages", () => {
+  const org = (name: string, id = "https://site.test/#org") => `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", "@id": id, name })}</script>`;
+  const site = (a: string, b: string) => checkFake(fakeCrawl(O, { "/": good({ head: a }), "/b": good({ path: "/b", title: "Second page title here", head: b }) }));
+
+  it("the same @id described differently on two pages is a conflict on both pages", () => {
+    const f = site(org("Fernwood"), org("Fernwood Ltd"));
+    expect(furls(f, "sd-conflicting-entity")).toEqual([`${O}/`, `${O}/b`]);
+    expect(f.find((x) => x.id === "sd-conflicting-entity")?.detail).toContain("across pages");
+    expect(f.find((x) => x.id === "sd-conflicting-entity")?.detail).toContain("name");
+  });
+  it("the same entity repeated identically on every page is normal", () => {
+    expect(fids(site(org("Fernwood"), org("Fernwood")))).not.toContain("sd-conflicting-entity");
+  });
+  it("different @ids are different entities", () => {
+    expect(fids(site(org("Fernwood", "https://site.test/#a"), org("Fernwood Ltd", "https://site.test/#b")))).not.toContain("sd-conflicting-entity");
+  });
+  it("maps parse errors, missing required properties and duplicates to findings with details", () => {
+    const bad = '<script type="application/ld+json">{ "@context": "https://schema.org", "@type": "Person", }</script>';
+    const product = `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Product", description: "x" })}</script>`;
+    const f = checkFake(fakeCrawl(O, { "/": good({ head: bad }), "/p": good({ path: "/p", title: "Product page title", head: product + org("X") + org("X") }) }));
+    expect(furls(f, "sd-parse-error")).toEqual([`${O}/`]);
+    expect(f.find((x) => x.id === "sd-parse-error")?.detail).toMatch(/block 1, line \d+/);
+    expect(f.find((x) => x.id === "sd-missing-required")?.detail).toBe("Product (block 1): name, offers|review|aggregateRating");
+    expect(furls(f, "sd-duplicate-entity")).toEqual([`${O}/p`]);
   });
 });
 
