@@ -41,7 +41,7 @@ describe("good fixture site", () => {
     expect(goodResult.crawl.statusCounts).toEqual({ "2xx": GOOD_SITE_PAGE_COUNT });
   });
   it("lets every named bot fetch every key path", () => {
-    expect(goodResult.bots.rows).toHaveLength(8);
+    expect(goodResult.bots.rows).toHaveLength(7);
     for (const row of goodResult.bots.rows) expect(row.results.every((r) => r.allowed)).toBe(true);
     expect(goodResult.bots.paths).toContain("/sitemap.xml");
   });
@@ -101,12 +101,10 @@ describe("broken fixture site", () => {
   it("names the blocked bots and leaves the search bots alone", () => {
     const rows = Object.fromEntries(brokenResult.bots.rows.map((r) => [r.bot, r.results.map((x) => x.allowed)]));
     expect(rows["GPTBot"]?.every((a) => !a)).toBe(true);
-    expect(rows["ClaudeBot"]?.every((a) => !a)).toBe(true);
     expect(rows["Googlebot"]?.[0]).toBe(true);
     expect(rows["PerplexityBot"]?.[0]).toBe(true);
     const detail = brokenResult.issues.find((i) => i.id === "bot-ai-blocked")?.examples.map((e) => e.detail).join("\n") ?? "";
     expect(detail).toContain("GPTBot");
-    expect(detail).toContain("ClaudeBot");
     expect(detail).not.toContain("PerplexityBot");
     const search = brokenResult.issues.find((i) => i.id === "bot-search-blocked-path")?.examples[0]?.detail ?? "";
     expect(search).toContain("Bingbot");

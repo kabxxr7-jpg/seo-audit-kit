@@ -325,9 +325,6 @@ Disallow: /cart
 User-agent: GPTBot
 Disallow: /
 
-User-agent: ClaudeBot
-Disallow: /
-
 User-agent: Bingbot
 Disallow: /services
 

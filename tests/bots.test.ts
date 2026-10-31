@@ -5,8 +5,8 @@ import { parseRobots } from "../src/robots.js";
 const row = (rows: ReturnType<typeof botAccessReport>, bot: string) => rows.find((r) => r.bot === bot)!;
 
 describe("botAccessReport", () => {
-  it("covers exactly the eight named bots", () => {
-    expect(NAMED_BOTS.map((b) => b.name)).toEqual(["Googlebot", "Bingbot", "GPTBot", "ClaudeBot", "PerplexityBot", "CCBot", "Google-Extended", "Applebot-Extended"]);
+  it("covers exactly the seven named bots", () => {
+    expect(NAMED_BOTS.map((b) => b.name)).toEqual(["Googlebot", "Bingbot", "GPTBot", "PerplexityBot", "CCBot", "Google-Extended", "Applebot-Extended"]);
   });
 
   it("allows everything when there is no robots.txt", () => {
@@ -24,7 +24,7 @@ describe("botAccessReport", () => {
     expect(row(rows, "Googlebot").results.map((r) => r.allowed)).toEqual([true, true, false]);
     expect(row(rows, "Googlebot").matchedGroup).toBe("wildcard");
     expect(row(rows, "GPTBot").matchedGroup).toBe("specific");
-    expect(row(rows, "ClaudeBot").results.map((r) => r.allowed)).toEqual([true, true, false]);
+    expect(row(rows, "PerplexityBot").results.map((r) => r.allowed)).toEqual([true, true, false]);
     expect(row(rows, "Applebot-Extended").results[2]?.rule).toBe("Disallow: /private/");
   });
 

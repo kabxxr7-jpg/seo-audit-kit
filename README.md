@@ -22,7 +22,7 @@ A small, tested technical SEO audit crawler for the jobs that say "audit my site
 | **https** | mixed content (active and passive), http canonical on an https page, site served over http (`mixed-content-*`, `site-not-https`) |
 | **URL hygiene** | uppercase, query parameters, underscores, very long URLs (`url-*`) |
 | **Structured data (JSON-LD)** | extracts every block, reports parse errors with the line and column in the page, checks required and recommended properties for Person, Organization, Article / NewsArticle / BlogPosting, Product, BreadcrumbList, FAQPage, PodcastEpisode and Book, flags duplicate and conflicting entities (including the same `@id` described differently on different pages) (`sd-*`) |
-| **Crawler and AI-bot access** | for Googlebot, Bingbot, GPTBot, ClaudeBot, PerplexityBot, CCBot, Google-Extended and Applebot-Extended: may the bot fetch the home page, the sitemap and the best-linked pages, according to robots.txt, and which rule decided (`bot-*`) |
+| **Crawler and AI-bot access** | for Googlebot, Bingbot, GPTBot, PerplexityBot, CCBot, Google-Extended and Applebot-Extended: may the bot fetch the home page, the sitemap and the best-linked pages, according to robots.txt, and which rule decided (`bot-*`) |
 | **Content without JavaScript** | reports the word count of the raw HTML response and flags near-empty bodies as likely client-rendered (`client-rendered-body`, `near-empty-body`). With `--render` the thinnest pages are also opened in Chrome and raw and rendered text are compared (`content-requires-javascript`) |
 
 Every finding has an id, a priority (high, medium or low), a reason in one sentence and a plain-English fix. There is **no score**; the report is a prioritised list with counts, example URLs and a "What was not checked" section.
@@ -96,9 +96,9 @@ Examples:
 - http://127.0.0.1:8802/pricing - listed in the sitemap
 
 ## Crawler and AI-bot access (robots.txt)
-| Path      | Googlebot | Bingbot                        | GPTBot                    | ClaudeBot                 | PerplexityBot | ...
-| /         | allowed   | allowed                        | **blocked** (Disallow: /) | **blocked** (Disallow: /) | allowed       | ...
-| /services | allowed   | **blocked** (Disallow: /services) | **blocked** (Disallow: /) | **blocked** (Disallow: /) | allowed    | ...
+| Path      | Googlebot | Bingbot                        | GPTBot                    | PerplexityBot | ...
+| /         | allowed   | allowed                        | **blocked** (Disallow: /) | allowed       | ...
+| /services | allowed   | **blocked** (Disallow: /services) | **blocked** (Disallow: /) | allowed    | ...
 ```
 
 The good fixture ("Fernwood Pottery") comes back with no issues at all. Both full reports are produced by the commands above and written to `out/` (git-ignored).
@@ -122,7 +122,7 @@ The required and recommended property lists live in `src/jsonld.ts` (`TYPE_RULES
 | `html.test.ts` | 14 | head data, headings, images, links, JSON-LD line numbers, main-text extraction, app-shell signals |
 | `jsonld.test.ts` | 20 | parse-error location, required properties for each of the eight types, duplicate and conflicting entities |
 | `sitemap.test.ts` | 8 | urlset, index, CDATA, off-origin and invalid URLs, caps, gzip and cross-origin notes |
-| `bots.test.ts` | 6 | the eight bots, own-group versus `*`, key-path selection |
+| `bots.test.ts` | 6 | the seven bots, own-group versus `*`, key-path selection |
 | `http.test.ts` | 20 | rate limit (fake clock), User-Agent, body cap, timeouts, redirect chains, loops, chain limit, robots refusal of a hop |
 | `crawler.test.ts` | 28 | recorded fields, same-origin only (a second server proves nothing is requested), robots.txt including Crawl-delay timing, page cap, hard cap, depth cap, redirect limit, sitemap discovery and comparison |
 | `checks.test.ts` | 61 | every check in isolation, on hand-built crawl results (this is also how https-only checks such as mixed content are tested) |

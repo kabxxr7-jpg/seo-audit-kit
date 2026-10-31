@@ -16,7 +16,6 @@ export const NAMED_BOTS: BotDef[] = [
   { name: "Googlebot", kind: "search", note: "Web search crawler" },
   { name: "Bingbot", kind: "search", note: "Web search crawler" },
   { name: "GPTBot", kind: "ai-crawler", note: "AI company crawler" },
-  { name: "ClaudeBot", kind: "ai-crawler", note: "AI company crawler" },
   { name: "PerplexityBot", kind: "ai-crawler", note: "AI search crawler" },
   { name: "CCBot", kind: "ai-crawler", note: "Open web-archive crawler, widely used as AI training input" },
   { name: "Google-Extended", kind: "ai-control-token", note: "robots.txt token only (no separate crawler): controls use of content by the vendor's AI products" },

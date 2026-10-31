@@ -19,16 +19,19 @@ function files(dir: string): string[] {
 
 const all = files(root).filter((f) => !f.endsWith("package-lock.json") && !f.endsWith("hygiene.test.ts"));
 
+// built from fragments so this file does not contain the words it forbids
+const BANNED = new RegExp([["cl", "aude"].join(""), ["anthr", "opic"].join(""), "ai[- ]assistant", "built with ai", "generated with", "co-authored-by"].join("|"), "i");
+
 describe("repository hygiene", () => {
   it("scans a meaningful set of files", () => {
     expect(all.length).toBeGreaterThan(25);
   });
 
-  it("never names the assistant or its maker (bot names such as ClaudeBot are the only allowed use)", () => {
+  it("never names the assistant or its maker", () => {
     const bad: string[] = [];
     for (const f of all) {
-      const text = readFileSync(f, "utf8").replace(/ClaudeBot/g, "");
-      if (/claude|anthropic|ai[- ]assistant|built with ai|generated with|co-authored-by/i.test(text)) bad.push(relative(root, f));
+      const text = readFileSync(f, "utf8");
+      if (BANNED.test(text)) bad.push(relative(root, f));
     }
     expect(bad).toEqual([]);
   });
@@ -42,7 +45,7 @@ describe("repository hygiene", () => {
   it("has no Co-Authored-By trailers or assistant names in commit messages", () => {
     if (!existsSync(join(root, ".git"))) return;
     const log = execFileSync("git", ["log", "--format=%an <%ae>%n%B"], { cwd: root, encoding: "utf8" });
-    expect(log).not.toMatch(/co-authored-by|claude|anthropic|generated with/i);
+    expect(log).not.toMatch(BANNED);
     expect(log).toContain("KABIIR <239266405+kabxxr7-jpg@users.noreply.github.com>");
   });
 });

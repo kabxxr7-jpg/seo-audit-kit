@@ -94,7 +94,7 @@ describe("markdown report for the broken fixture", () => {
 
   it("renders the bot table with blocked cells and rules", async () => {
     const md = renderMarkdown(await auditSite(brokenSite));
-    expect(md).toMatch(/\| Path \| Googlebot \| Bingbot \| GPTBot \| ClaudeBot \| PerplexityBot \| CCBot \| Google-Extended \| Applebot-Extended \|/);
+    expect(md).toMatch(/\| Path \| Googlebot \| Bingbot \| GPTBot \| PerplexityBot \| CCBot \| Google-Extended \| Applebot-Extended \|/);
     expect(md).toContain("**blocked** (Disallow: /)");
     expect(md).toContain("**blocked** (Disallow: /services)");
     expect(md).toMatch(/\| \/ \| allowed \| allowed \| \*\*blocked\*\*/);
@@ -166,7 +166,7 @@ describe("JSON report", () => {
     expect(parsed.issues[0]).toMatchObject({ id: expect.any(String), severity: "high", fix: expect.any(String), count: expect.any(Number) });
     expect(Object.keys(parsed)).not.toContain("score");
     expect(parsed.notChecked.length).toBeGreaterThan(5);
-    expect(parsed.bots.rows).toHaveLength(8);
+    expect(parsed.bots.rows).toHaveLength(7);
     expect(parsed.settings.userAgent).toMatch(/^seo-audit-kit\//);
   });
 
