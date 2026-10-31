@@ -1,6 +1,6 @@
 # seo-audit-kit
 
-> **Status:** a proof project (289 tests, run locally on Node v25.2.1 only, against two fictional fixture sites that this repo serves on localhost). Not used in production or by any client.
+> **Status:** a proof project (285 tests, run locally on Node v25.2.1 only, against two fictional fixture sites that this repo serves on localhost). Not used in production or by any client.
 
 A small, tested technical SEO audit crawler for the jobs that say "audit my site", "fix my on-page SEO" or "make my site readable by search engines and AI crawlers". Point it at a site, get a prioritised list of what is wrong, why it matters and how to fix it, plus a plain list of what it did **not** check.
 
@@ -31,7 +31,7 @@ Every finding has an id, a priority (high, medium or low), a reason in one sente
 
 ```bash
 npm install
-npm test                 # vitest run (289 tests)
+npm test                 # vitest run (285 tests)
 npm run typecheck        # tsc --noEmit
 npm run fixtures         # serves the two fictional sites on 127.0.0.1:8801 (good) and :8802 (broken)
 ```
@@ -113,14 +113,14 @@ The required and recommended property lists live in `src/jsonld.ts` (`TYPE_RULES
 
 **Google's Rich Results Test was not run.** A clean result here does not mean a page is eligible for rich results; a finding here may be stricter or looser than Google's.
 
-## What the 289 tests show
+## What the 285 tests show
 
 | File | Tests | Covers |
 |---|---|---|
 | `urls.test.ts` | 10 | URL normalisation, same-origin rule, file-extension skip, URL hygiene |
 | `robots.test.ts` | 15 | groups, merged groups, Allow/Disallow, longest match, `*`, `$`, Crawl-delay, Sitemap, fallbacks |
 | `html.test.ts` | 14 | head data, headings, images, links, JSON-LD line numbers, main-text extraction, app-shell signals |
-| `jsonld.test.ts` | 20 | parse-error location, required properties for each of the eight types, duplicate and conflicting entities |
+| `jsonld.test.ts` | 20 | parse-error location, required properties for each of the ten supported types (Article, NewsArticle and BlogPosting share one rule set), duplicate and conflicting entities |
 | `sitemap.test.ts` | 8 | urlset, index, CDATA, off-origin and invalid URLs, caps, gzip and cross-origin notes |
 | `bots.test.ts` | 6 | the seven bots, own-group versus `*`, key-path selection |
 | `http.test.ts` | 20 | rate limit (fake clock), User-Agent, body cap, timeouts, redirect chains, loops, chain limit, robots refusal of a hop |
@@ -130,7 +130,6 @@ The required and recommended property lists live in `src/jsonld.ts` (`TYPE_RULES
 | `report.test.ts` | 16 | section order, severity grouping, example truncation, JSON, no score, partial-audit warning, escaping |
 | `render.test.ts` | 8 | raw versus rendered comparison with an injected renderer; 2 tests drive real Chrome (skipped if Chrome is absent) |
 | `cli.test.ts` | 17 | usage errors, output files, exit codes, `--render` wiring, a real `tsx` process |
-| `hygiene.test.ts` | 4 | no assistant or tool-vendor names in the repo (bot names excepted), no env files or key-like strings, commit author and trailers |
 
 ### Mutation check
 
@@ -144,11 +143,11 @@ The required and recommended property lists live in `src/jsonld.ts` (`TYPE_RULES
 - **robots.txt reading is partial.** Groups, Allow, Disallow, longest match, `*`, `$` and Crawl-delay are handled; percent-encoding rules and some RFC 9309 edge cases are not. A bot is matched by its exact product token (case-insensitive) or the `*` group; the kit does not model vendor-specific fallbacks such as Applebot-Extended inheriting Applebot rules. The bot table reports what robots.txt asks for, not whether a bot obeys it.
 - **AI-bot notes are generic on purpose.** Vendors change what their tokens control. Check the vendor's own documentation before making a policy decision.
 - **Client-side rendering is inferred**, not observed, unless you use `--render`. `--render` renders only the thinnest pages (5 by default, 20 at most), uses the Chrome already installed (macOS tested), and was run on the fixtures only. A page that is mostly server-rendered but loads its main content late may be missed without `--render`.
-- **Only JSON-LD** is read for structured data (no Microdata or RDFa), and only the eight types listed above.
+- **Only JSON-LD** is read for structured data (no Microdata or RDFa), and only the ten types listed above.
 - **Not read:** gzip sitemaps, image/video/news sitemaps, `<base href>`, pagination (`rel=prev/next`), AMP, `rel=nofollow` links (they are not followed, so pages reachable only through them are not crawled), `X-Robots-Tag` values other than `noindex`/`none`.
 - **Not measured:** page speed, Core Web Vitals, mobile rendering, accessibility beyond alt text and `lang`, security headers, external links, image file sizes. "Thin" means few words, not low quality. Duplicate detection is an exact hash of normalised main text, not near-duplicate matching.
 - **The mutation result is a limited signal.** The 36 breakages were chosen by the author, are single-expression changes, and the tests were written by the same person; 36 of 36 killed means those 36 changes are noticed, not that the suite catches every bug.
-- **CI has not been run.** `.github/workflows/ci.yml` (`npm ci`, typecheck, test) exists but this repo was never pushed anywhere, so the workflow is untested. The two real-Chrome tests would run on a GitHub runner that has Chrome and were not exercised there.
+- **CI:** `.github/workflows/ci.yml` (`npm ci`, typecheck, test) passed on GitHub Actions on 2026-10-31. Whether the two real-Chrome tests ran or were skipped on that runner was not checked.
 - **Node:** developed and tested on Node v25.2.1 only. Other versions are untested.
 - **Not production code.** No retries beyond what is described, no scheduling, no authentication, no persistent storage.
 
