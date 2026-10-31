@@ -90,7 +90,7 @@ export function fakeCrawl(origin: string, pages: Record<string, FakePage | strin
     userAgent: "test",
     refused: null,
     robots: { url: origin + "/robots.txt", status: robotsText === null ? 404 : 200, found: robotsText !== null, text: robotsText, parsed: robotsText === null ? null : parseRobots(robotsText) },
-    sitemap: { files: [], urls: (extra.sitemap ?? []).map((p) => origin + p), offOrigin: [], invalid: [], source: new Map(), truncated: false, notes: [] },
+    sitemap: { files: extra.sitemap === undefined ? [] : [{ url: origin + "/sitemap.xml", kind: "urlset" as const, status: 200, urls: extra.sitemap.map((p) => origin + p), children: [] }], urls: (extra.sitemap ?? []).map((p) => origin + p), offOrigin: [], invalid: [], source: new Map(), truncated: false, notes: [] },
     pages: records,
     byUrl,
     robotsBlocked: [],

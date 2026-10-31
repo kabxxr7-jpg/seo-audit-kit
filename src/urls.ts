@@ -12,6 +12,7 @@ export function normalizeUrl(raw: string, base?: string): string | null {
   }
   if (u.protocol !== "http:" && u.protocol !== "https:") return null;
   u.hash = "";
+  if (u.search === "") u.search = ""; // drop a dangling "?"
   return u.href;
 }
 
@@ -66,5 +67,5 @@ export function urlHygiene(url: string): UrlHygieneProblem[] {
 
 export function isLoopbackHost(url: string): boolean {
   const h = new URL(url).hostname;
-  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h.endsWith(".localhost") || h.endsWith(".test");
+  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h.endsWith(".localhost");
 }

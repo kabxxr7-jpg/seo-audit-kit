@@ -11,6 +11,10 @@ describe("normalizeUrl", () => {
     expect(normalizeUrl("")).toBeNull();
     expect(normalizeUrl("http://")).toBeNull();
   });
+  it("drops an empty query marker so /a and /a? are one URL", () => {
+    expect(normalizeUrl("http://a.test/a?")).toBe("http://a.test/a");
+    expect(normalizeUrl("http://a.test/a?x=")).toBe("http://a.test/a?x=");
+  });
   it("lowercases the host and drops default ports", () => {
     expect(normalizeUrl("HTTP://Example.TEST:80/Path")).toBe("http://example.test/Path");
   });
